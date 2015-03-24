@@ -58,7 +58,7 @@ You can also fetch arg values using `get()`.  Pass in a key to fetch one arg, or
 In order to protect the log format and syntax, all column values are "cleansed" before being written.  Specifically, any newlines are converted to single spaces, and the character sequence `][` is stripped (as it would corrupt the log column layout).  All other characters are allowed.  Example:
 
 ```javascript
-	logger.debug( 'main', 1, "This won't go well\n[Hi][There]\r\nGoodbye.\n" );
+	logger.debug( 1, "This won't go well\n[Hi][There]\r\nGoodbye.\n" );
 ```
 
 This would be logged as:
@@ -73,11 +73,11 @@ The logger library provides the following three shortcut methods, which accept a
 
 ### debug
 
-The `debug()` method is designed to assist with writing to a debug log.  It automatically sets the `category` column to `debug`.  It requires 3 arguments, which are values for the `component`, `code` (debug level) and `msg` columns, with the 4th argument being an optional `data` object, if you want.  Examples:
+The `debug()` method is designed to assist with writing to a debug log.  It automatically sets the `category` column to `debug`.  It requires two arguments, which are values for the `code` (debug level) and `msg` columns, with the 3rd argument being an optional `data` object, if you want.  Examples:
 
 ```javascript
-	logger.debug( 'main', 1, "Logged at debug level 1" );
-	logger.debug( 'main', 2, "Logged at debug level 2", {some:"data"} );
+	logger.debug( 1, "Logged at debug level 1" );
+	logger.debug( 2, "Logged at debug level 2", {some:"data"} );
 ```
 
 An extra feature with the `debug()` call is that you can set a `debugLevel` arg on your class instance, and it'll only log entries if they have an *equal or lower level* (a.k.a. code).  So imagine this setup:
@@ -85,19 +85,19 @@ An extra feature with the `debug()` call is that you can set a `debugLevel` arg 
 ```javascript
 	logger.set( 'debugLevel', 2 );
 	
-	logger.debug( 'main', 1, "Logged at debug level 1" );
-	logger.debug( 'main', 2, "Logged at debug level 2" );
-	logger.debug( 'main', 3, "This won't be logged at all!" );
+	logger.debug( 1, "Logged at debug level 1" );
+	logger.debug( 2, "Logged at debug level 2" );
+	logger.debug( 3, "This won't be logged at all!" );
 ```
 
 In this case we set the `debugLevel` arg to 2, so only the first two calls will be logged.  The third call, which is logged at a higher (more verbose) level than the `debugLevel` value, will be silently skipped.
 
 ### error
 
-The `error()` method is designed to assist with logging errors.  It automatically sets the `category` column to `error`.  It requires 3 arguments, which are values for the `component`, `code` and `msg` columns, with the 4th argument being an optional `data` object, if you want.  Example:
+The `error()` method is designed to assist with logging errors.  It automatically sets the `category` column to `error`.  It requires two arguments, which are values for the `code` and `msg` columns, with the 3rd argument being an optional `data` object, if you want.  Example:
 
 ```javascript
-	logger.error( 'main', 1005, "An error of type 1005 occurred!" );
+	logger.error( 1005, "An error of type 1005 occurred!" );
 ```
 
 This would be equivalent to calling `print()` with the following:
@@ -105,7 +105,6 @@ This would be equivalent to calling `print()` with the following:
 ```javascript
 	logger.print({
 		category: 'error',
-		component: 'main',
 		code: 1005,
 		msg: "An error of type 1005 occurred!"
 	});
@@ -113,10 +112,10 @@ This would be equivalent to calling `print()` with the following:
 
 ### transaction
 
-The `transaction()` method is designed to assist with logging transactions.  A "transaction" is whatever action you define in your app as something you want logged, for audit or replay purposes.  It automatically sets the `category` column to `transaction`.  It requires 3 arguments, which are values for the `component`, `code` and `msg` columns, with the 4th argument being an optional `data` object, if you want.  Example:
+The `transaction()` method is designed to assist with logging transactions.  A "transaction" is whatever action you define in your app as something you want logged, for audit or replay purposes.  It automatically sets the `category` column to `transaction`.  It requires two arguments, which are values for the `code` and `msg` columns, with the 3rd argument being an optional `data` object, if you want.  Example:
 
 ```javascript
-	logger.transaction( 'main', "user_update", "User jhuckaby was updated", {username:"jhuckaby"} );
+	logger.transaction( "user_update", "User jhuckaby was updated", {username:"jhuckaby"} );
 ```
 
 This would be equivalent to calling `print()` with the following:
@@ -124,7 +123,6 @@ This would be equivalent to calling `print()` with the following:
 ```javascript
 	logger.print({
 		category: 'transaction',
-		component: 'main',
 		code: "user_update",
 		msg: "User jhuckaby was updated",
 		data: {username:"jhuckaby"}
@@ -137,7 +135,7 @@ If you set the `echo` arg to any true value, the logger will echo all log entrie
 
 ```javascript
 	logger.set( 'echo', true );
-	logger.debug( 'main', 1, "This will be logged and echoed to the console!" );
+	logger.debug( 1, "This will be logged and echoed to the console!" );
 ```
 
 ## Last Line Logged
@@ -195,10 +193,6 @@ The `data` column is special, in that if it contains an object, it will be seria
 ### category
 
 The `category` column is only special in that the shortcut methods `debug()`, `error()` and `transaction()` automatically populate it to match their names.
-
-### component
-
-The `category` column is only special in that the shortcut methods `debug()`, `error()` and `transaction()` will populate it based on the first argument passed to them.
 
 # License
 

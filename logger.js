@@ -78,12 +78,12 @@ module.exports = Class.create({
 		if (this.args.echo) process.stdout.write(line);
 	},
 
-	debug: function(component, level, msg, data) {
-		// simple debug log implementation, expects 'component', 'code' and 'msg' named columns in log
+	debug: function(level, msg, data) {
+		// simple debug log implementation, expects 'code' and 'msg' named columns in log
+		// only logs if level is less than or equal to current debugLevel arg
 		if (level <= this.args.debugLevel) {
 			this.print({ 
 				category: 'debug', 
-				component: component,
 				code: level, 
 				msg: msg, 
 				data: data 
@@ -91,22 +91,20 @@ module.exports = Class.create({
 		}
 	},
 
-	error: function(component, code, msg, data) {
-		// simple error log implementation, expects 'component', 'code' and 'msg' named columns in log
+	error: function(code, msg, data) {
+		// simple error log implementation, expects 'code' and 'msg' named columns in log
 		this.print({ 
 			category: 'error', 
-			component: component,
 			code: code, 
 			msg: msg, 
 			data: data 
 		});
 	},
 
-	transaction: function(component, code, msg, data) {
-		// simple debug log implementation, expects 'component', 'code' and 'msg' named columns in log
+	transaction: function(code, msg, data) {
+		// simple debug log implementation, expects 'code' and 'msg' named columns in log
 		this.print({ 
 			category: 'transaction', 
-			component: component,
 			code: code, 
 			msg: msg, 
 			data: data 
