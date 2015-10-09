@@ -194,7 +194,45 @@ The `data` column is special, in that if it contains an object, it will be seria
 
 The `category` column is only special in that the shortcut methods `debug()`, `error()` and `transaction()` automatically populate it to match their names.
 
+## Rotating Logs
+
+To rotate a log file, call the `rotate()` method, passing in a destination filesystem path and a callback.  This will atomically move the file to the destination directory/filename, attempting a rename, and falling back to a "copy to temp file + rename" strategy.  Example:
+
+```javascript
+	logger.rotate( '/logs/pickup/myapp.log', function(err) {
+		if (err) throw err;
+	} );
+```
+
+If you omit a filename on the destination path and leave a trailing slash, the source log filename will be appended to it.
+
+You can actually rotate any log file you want by specifying three arguments, with the custom source log file path as the first argument.  Example:
+
+```javascript
+	logger.rotate( '/path/to/logfile.log', '/logs/pickup/otherapp.log', function(err) {
+		if (err) throw err;
+	} );
+```
+
+## Archiving Logs
+
+You can also "archive" logs using the `archive()` method.  Archiving differs from rotation in that the log file is atomically copied to a custom location which may contain date/time directories (all auto-created as needed), and then the file is compressed using gzip.  You can archive any number of logs at once by using [filesystem glob syntax](https://en.wikipedia.org/wiki/Glob_%28programming%29).  Example:
+
+```javascript
+	var src_spec = '/logs/myapp/*.log';
+	var dest_path = '/archives/myapp/[yyyy]/[mm]/[dd]/[filename]-[hh].log.gz';
+	var epoch = ((new Date()).getTime() / 1000) - 1800; // 30 minutes ago
+	
+	logger.archive( src_spec, dest_path, epoch, function(err) {
+		if (err) throw err;
+	} );
+```
+
+This example would find all the log files found in the `/logs/myapp/` directory that end in `.log`, and archive them to destination directory `/archives/myapp/[yyyy]/[mm]/[dd]/`, with a destination filename pattern of `[filename]-[hh].log.gz`.  All the bracket-delimited placeholders are expanded using the timestamp provided in the `epoch` variable.  The special `[filename]` placeholder expands to the source log filename, sans extension.  All directories are created as needed.
+
 # License
+
+The MIT License
 
 Copyright (c) 2015 Joseph Huckaby
 

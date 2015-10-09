@@ -18,7 +18,11 @@
 		"clear"
 	],
 	"dependencies": {
-		"pixl-class": ">=1.0.0"
+		"async": "^1.0.0",
+		"mkdirp": "^0.5.1 || ^1.0.0",
+		"glob": "^5.0.0",
+		"pixl-class": ">=1.0.0",
+		"pixl-tools": ">=1.0.0"
 	},
 	"devDependencies": {
 		
