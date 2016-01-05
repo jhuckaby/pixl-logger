@@ -138,6 +138,22 @@ If you set the `echo` arg to any true value, the logger will echo all log entrie
 	logger.debug( 1, "This will be logged and echoed to the console!" );
 ```
 
+### Colored Logs
+
+If you set the `color` arg to any true value, the logger will echo all log entries in color (assuming you have a terminal that supports color), using the [chalk](https://www.npmjs.com/package/chalk) module.  The color sequence is `gray`, `red`, `green`, `yellow`, `blue`, `magenta` and `cyan`.  If your log has more than 7 columns, the colors repeat.  The bracket dividers are printed in `dim`.  Here is a screenshot:
+
+![Colored Log Example](https://pixlcore.com/software/pixl-logger/colored-log-example.png)
+
+Example:
+
+```javascript
+	logger.set( 'echo', true );
+	logger.set( 'color', true );
+	logger.debug( 1, "This will be colored in the console!" );
+```
+
+Note that the color only affects the local echo in your terminal.  The log file itself is still written in plain text.
+
 ## Last Line Logged
 
 To grab the last line logged by the logger, pull the `lastRow` property off the class instance.  It is the fully formatted line, including an EOL.  Example:

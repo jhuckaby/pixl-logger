@@ -1,6 +1,6 @@
 {
   "name": "pixl-logger",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A simple logging class which generates [bracket][delimited] log columns.",
   "author": "Joseph Huckaby <jhuckaby@gmail.com>",
   "homepage": "https://github.com/jhuckaby/pixl-logger",
@@ -21,6 +21,7 @@
     "async": "^1.0.0",
     "mkdirp": "^0.5.1 || ^1.0.0",
     "glob": "^5.0.0",
+    "chalk": "^1.1.1",
     "pixl-class": ">=1.0.0",
     "pixl-tools": ">=1.0.0"
   },

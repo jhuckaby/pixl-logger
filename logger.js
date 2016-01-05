@@ -9,11 +9,15 @@ var os = require('os');
 var async = require('async');
 var mkdirp = require('mkdirp');
 var glob = require('glob');
+var chalk = require('chalk');
 
 var Class = require("pixl-class");
 var Tools = require("pixl-tools");
 
 module.exports = Class.create({
+	
+	columnColors: ['gray', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan'],
+	dividerColor: 'dim',
 	
 	__construct: function(path, columns, args) {
 		// create new logger instance
@@ -90,7 +94,23 @@ module.exports = Class.create({
 		fs.appendFile(path, line);
 		
 		// echo to console if desired
-		if (this.args.echo) process.stdout.write(line);
+		if (this.args.echo) {
+			if (this.args.color) {
+				var ccols = [];
+				var nclrs = this.columnColors.length;
+				var dclr = chalk[ this.dividerColor ];
+				
+				for (var idx = 0, len = cols.length; idx < len; idx++) {
+					ccols.push( chalk[ this.columnColors[idx % nclrs] ]( cols[idx] ) );
+				}
+				process.stdout.write(
+					dclr('[') + ccols.join( dclr('][') ) + dclr(']') + "\n" 
+				);
+			} // color
+			else {
+				process.stdout.write(line);
+			}
+		}
 	},
 
 	debug: function(level, msg, data) {
