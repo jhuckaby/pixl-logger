@@ -246,6 +246,18 @@ You can also "archive" logs using the `archive()` method.  Archiving differs fro
 
 This example would find all the log files found in the `/logs/myapp/` directory that end in `.log`, and archive them to destination directory `/archives/myapp/[yyyy]/[mm]/[dd]/`, with a destination filename pattern of `[filename]-[hh].log.gz`.  All the bracket-delimited placeholders are expanded using the timestamp provided in the `epoch` variable.  The special `[filename]` placeholder expands to the source log filename, sans extension.  All directories are created as needed.
 
+## Sync or Async
+
+By default, the logger will append to your log files asynchronously.  This has the benefit of not blocking your main thread, and can help if your log drive is suffering lag or high I/O wait.  But it *may* cause issues with log entries appearing out of order for extremely high traffic apps, and also some final log entries may be lost if `process.exit()` is called *immediately* after.
+
+To get around these potential issues, you can write log entries synchronously.  Just set the `sync` arg to true:
+
+```javascript
+	logger.set( 'sync', true );
+	logger.debug( 1, "This will be logged synchronously, even if we exit right NOW!" );
+	process.exit(0);
+```
+
 # License
 
 The MIT License
