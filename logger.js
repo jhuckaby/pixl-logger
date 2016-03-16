@@ -76,7 +76,7 @@ module.exports = Class.create({
 		for (var idx = 0, len = this.columns.length; idx < len; idx++) {
 			var col = this.columns[idx];
 			var val = this.args[col];
-			if ((typeof(val) == 'undefined') || !val.toString) val = '';
+			if ((typeof(val) == 'undefined') || (val === null) || !val.toString) val = '';
 			cols.push( val.toString().replace(/[\r\n]/g, ' ').replace(/\]\[/g, '') );
 		}
 		
