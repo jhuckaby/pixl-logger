@@ -61,7 +61,7 @@ module.exports = Class.create({
 		// set automatic column values
 		this.args.hires_epoch = now.getTime() / 1000;
 		this.args.epoch = Math.floor( this.args.hires_epoch );
-		this.args.date = dargs.yyyy_mm_dd + ' ' + dargs.hh_mi_ss;
+		this.args.date = dargs.yyyy_mm_dd.replace(/\//g, '-') + ' ' + dargs.hh_mi_ss;
 		
 		// support json 'data' arg
 		if (this.args.data) {
