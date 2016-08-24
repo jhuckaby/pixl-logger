@@ -24,10 +24,10 @@ module.exports = Class.create({
 		this.path = path;
 		this.columns = columns;
 		
-		this.args = args || {};
-		this.args.pid = process.pid;
-		this.args.debugLevel = 1;
+		this.args = args ? Tools.copyHash(args, true) : {};
 		
+		if (!this.args.pid) this.args.pid = process.pid;
+		if (!this.args.debugLevel) this.args.debugLevel = 1;
 		if (!this.args.hostname) {
 			this.args.hostname = os.hostname().toLowerCase();
 		}
