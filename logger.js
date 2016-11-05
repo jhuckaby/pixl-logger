@@ -92,7 +92,7 @@ module.exports = Class.create({
 		
 		// append to log
 		if (this.args.sync) fs.appendFileSync(path, line);
-		else fs.appendFile(path, line);
+		else fs.appendFile(path, line, function() {});
 		
 		// echo to console if desired
 		if (this.args.echo) {
