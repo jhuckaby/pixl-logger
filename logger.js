@@ -1,5 +1,5 @@
 // Generic Logger Class for Node.JS
-// Copyright (c) 2012, 2014, 2015 Joseph Huckaby
+// Copyright (c) 2012 - 2017 Joseph Huckaby and PixlCore.com
 // Released under the MIT License
 
 var fs = require('fs');
@@ -19,35 +19,50 @@ module.exports = Class.create({
 	columnColors: ['gray', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan'],
 	dividerColor: 'dim',
 	
+	pather: null,
+	filter: null,
+	serializer: null,
+	echoer: null,
+	
 	__construct: function(path, columns, args) {
 		// create new logger instance
+		var self = this;
+		
 		this.path = path;
 		this.columns = columns;
-		
 		this.args = args ? Tools.copyHash(args, true) : {};
 		
-		if (!this.args.pid) this.args.pid = process.pid;
 		if (!this.args.debugLevel) this.args.debugLevel = 1;
 		if (!this.args.hostname) {
 			this.args.hostname = os.hostname().toLowerCase();
 		}
+		if (!this.args.pid) this.args.pid = process.pid;
+		
+		// pass hooks in args
+		['pather', 'filter', 'serializer', 'echoer'].forEach( function(key) {
+			if (self.args[key]) {
+				self[key] = self.args[key];
+				delete self.args[key];
+			}
+		});
 	},
-
+	
 	get: function(key) {
 		// get one arg, or all of them
 		return key ? this.args[key] : this.args;
 	},
-
+	
 	set: function() {
 		// set one or more args, pass in key,value or args obj
 		if (arguments.length == 2) {
-			this.args[ arguments[0] ] = arguments[1];
+			if (arguments[0].toString().match(/^(pather|filter|serializer|echoer)$/)) this[arguments[0]] = arguments[1];
+			else this.args[ arguments[0] ] = arguments[1];
 		}
 		else if (arguments.length == 1) {
-			for (var key in arguments[0]) this.args[key] = arguments[0][key];
+			for (var key in arguments[0]) this.set(key, arguments[0][key]);
 		}
 	},
-
+	
 	print: function(args) {
 		// setup date/time stuff
 		var now = args.now ? args.now : new Date();
@@ -63,30 +78,33 @@ module.exports = Class.create({
 		this.args.epoch = Math.floor( this.args.hires_epoch );
 		this.args.date = dargs.yyyy_mm_dd.replace(/\//g, '-') + ' ' + dargs.hh_mi_ss;
 		
-		// support json 'data' arg
-		if (this.args.data) {
-			if (typeof(this.args.data) == 'object') {
-				this.args.data = JSON.stringify( this.args.data );
-			}
-		}
-		else this.args.data = '';
-		
 		// populate columns
 		var cols = [];
 		for (var idx = 0, len = this.columns.length; idx < len; idx++) {
 			var col = this.columns[idx];
 			var val = this.args[col];
+			
 			if ((typeof(val) == 'undefined') || (val === null) || !val.toString) val = '';
-			cols.push( val.toString().replace(/[\r\n]/g, ' ').replace(/\]\[/g, '') );
+			
+			if (this.filter) {
+				cols.push( this.filter(val, idx) );
+			}
+			else {
+				if (typeof(val) == 'object') val = JSON.stringify(val);
+				cols.push( val.toString().replace(/[\r\n]/g, ' ').replace(/\]\[/g, '') );
+			}
 		}
 		
 		// compose log row
-		var line = '[' + cols.join('][') + "]\n";
+		var line = this.serializer ? this.serializer(cols, this.args) : ('[' + cols.join('][') + "]\n");
 		this.lastRow = line;
 		
 		// file path may have placeholders, expand these if necessary
 		var path = this.path;
-		if (path.indexOf('[') > -1) {
+		if (this.pather) {
+			path = this.pather( path, this.args );
+		}
+		else if (path.indexOf('[') > -1) {
 			path = Tools.substitute( path, this.args );
 		}
 		
@@ -96,7 +114,10 @@ module.exports = Class.create({
 		
 		// echo to console if desired
 		if (this.args.echo) {
-			if (this.args.color) {
+			if (this.echoer) {
+				this.echoer( line, cols, this.args );
+			}
+			else if (this.args.color) {
 				var ccols = [];
 				var nclrs = this.columnColors.length;
 				var dclr = chalk[ this.dividerColor ];
@@ -113,7 +134,7 @@ module.exports = Class.create({
 			}
 		}
 	},
-
+	
 	debug: function(level, msg, data) {
 		// simple debug log implementation, expects 'code' and 'msg' named columns in log
 		// only logs if level is less than or equal to current debugLevel arg
@@ -126,7 +147,7 @@ module.exports = Class.create({
 			});
 		}
 	},
-
+	
 	error: function(code, msg, data) {
 		// simple error log implementation, expects 'code' and 'msg' named columns in log
 		this.print({ 
@@ -136,7 +157,7 @@ module.exports = Class.create({
 			data: data 
 		});
 	},
-
+	
 	transaction: function(code, msg, data) {
 		// simple debug log implementation, expects 'code' and 'msg' named columns in log
 		this.print({ 
