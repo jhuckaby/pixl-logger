@@ -221,7 +221,7 @@ module.exports = Class.create({
 					if (callback) inp.on('error', callback );
 					if (callback) outp.on('error', callback );
 					
-					inp.on('end', function() {
+					outp.on('finish', function() {
 						// final rename
 						fs.rename(dest_temp_file, dest_path, function(err) {
 							if (err) {
@@ -295,7 +295,7 @@ module.exports = Class.create({
 								inp.on('error', callback);
 								outp.on('error', callback);
 								
-								inp.on('end', function() {
+								outp.on('finish', function() {
 									// all done, delete temp file
 									fs.unlink( src_temp_file, callback );
 								} );
@@ -310,7 +310,7 @@ module.exports = Class.create({
 								inp.on('error', callback);
 								outp.on('error', callback);
 								
-								inp.on('end', function() {
+								outp.on('finish', function() {
 									// all done, delete temp file
 									fs.unlink( src_temp_file, callback );
 								} );
