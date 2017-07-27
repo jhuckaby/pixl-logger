@@ -115,7 +115,13 @@ module.exports = Class.create({
 		// echo to console if desired
 		if (this.args.echo) {
 			if (this.echoer) {
-				this.echoer( line, cols, this.args );
+				if (typeof(this.echoer) == 'function') {
+					this.echoer( line, cols, this.args );
+				}
+				else if (typeof(this.echoer) == 'string') {
+					if (this.args.sync) fs.appendFileSync(this.echoer, line);
+					else fs.appendFile(this.echoer, line, function() {});
+				}
 			}
 			else if (this.args.color) {
 				var ccols = [];
@@ -133,6 +139,9 @@ module.exports = Class.create({
 				process.stdout.write(line);
 			}
 		}
+		
+		// emit row as an event
+		this.emit( 'row', line, cols, this.args );
 	},
 	
 	debug: function(level, msg, data) {

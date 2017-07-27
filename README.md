@@ -272,6 +272,8 @@ logger.echoer = function(line, cols, args) {
 
 In this example we are only echoing certain columns to the console (just `category` and `msg`) using the `args` object, and allowing Node.js to serialize the data column via [console.dir()](https://nodejs.org/api/console.html#console_console_dir_obj_options).  This way if you are using a debugger, it may be navigable.
 
+If you specify a filesystem path as the `echoer` instead of a function, it will be appended to.  Using this technique you can have the logger append to two different log files at once (the primary log and the echoer log).  This file append honors the `sync` flag as well.
+
 Note that your `echoer` hook is only ever called if [Echo to Console](#echo-to-console) mode is enabled.
 
 ## Rotating Logs
