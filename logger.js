@@ -1,5 +1,5 @@
 // Generic Logger Class for Node.JS
-// Copyright (c) 2012 - 2017 Joseph Huckaby and PixlCore.com
+// Copyright (c) 2012 - 2018 Joseph Huckaby and PixlCore.com
 // Released under the MIT License
 
 var fs = require('fs');
@@ -70,19 +70,20 @@ module.exports = Class.create({
 		var dargs = Tools.getDateArgs(now);
 		
 		// import args into object
-		for (var key in args) this.args[key] = args[key];
-		// for (var key in dargs) this.args[key] = dargs[key];
+		for (var key in this.args) {
+			if (!(key in args)) args[key] = this.args[key];
+		}
 		
 		// set automatic column values
-		this.args.hires_epoch = now.getTime() / 1000;
-		this.args.epoch = Math.floor( this.args.hires_epoch );
-		this.args.date = dargs.yyyy_mm_dd.replace(/\//g, '-') + ' ' + dargs.hh_mi_ss;
+		args.hires_epoch = now.getTime() / 1000;
+		args.epoch = Math.floor( args.hires_epoch );
+		args.date = dargs.yyyy_mm_dd.replace(/\//g, '-') + ' ' + dargs.hh_mi_ss;
 		
 		// populate columns
 		var cols = [];
 		for (var idx = 0, len = this.columns.length; idx < len; idx++) {
 			var col = this.columns[idx];
-			var val = this.args[col];
+			var val = args[col];
 			
 			if ((typeof(val) == 'undefined') || (val === null) || !val.toString) val = '';
 			
@@ -96,34 +97,34 @@ module.exports = Class.create({
 		}
 		
 		// compose log row
-		var line = this.serializer ? this.serializer(cols, this.args) : ('[' + cols.join('][') + "]\n");
+		var line = this.serializer ? this.serializer(cols, args) : ('[' + cols.join('][') + "]\n");
 		this.lastRow = line;
 		
 		// file path may have placeholders, expand these if necessary
 		var path = this.path;
 		if (this.pather) {
-			path = this.pather( path, this.args );
+			path = this.pather( path, args );
 		}
 		else if (path.indexOf('[') > -1) {
-			path = Tools.substitute( path, this.args );
+			path = Tools.substitute( path, args );
 		}
 		
 		// append to log
-		if (this.args.sync) fs.appendFileSync(path, line);
+		if (args.sync) fs.appendFileSync(path, line);
 		else fs.appendFile(path, line, function() {});
 		
 		// echo to console if desired
-		if (this.args.echo) {
+		if (args.echo) {
 			if (this.echoer) {
 				if (typeof(this.echoer) == 'function') {
-					this.echoer( line, cols, this.args );
+					this.echoer( line, cols, args );
 				}
 				else if (typeof(this.echoer) == 'string') {
-					if (this.args.sync) fs.appendFileSync(this.echoer, line);
+					if (args.sync) fs.appendFileSync(this.echoer, line);
 					else fs.appendFile(this.echoer, line, function() {});
 				}
 			}
-			else if (this.args.color) {
+			else if (args.color) {
 				var ccols = [];
 				var nclrs = this.columnColors.length;
 				var dclr = chalk[ this.dividerColor ];
@@ -141,7 +142,7 @@ module.exports = Class.create({
 		}
 		
 		// emit row as an event
-		this.emit( 'row', line, cols, this.args );
+		this.emit( 'row', line, cols, args );
 	},
 	
 	debug: function(level, msg, data) {

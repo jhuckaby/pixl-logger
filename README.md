@@ -51,6 +51,8 @@ logger.print({
 });
 ```
 
+Note that when you pass arguments to `print()` they are not saved for subsequent calls.  They are only used for that one log row.  You need to call `set()` to make them stick.
+
 You can also fetch arg values using `get()`.  Pass in a key to fetch one arg, or omit to get the entire `args` object back.
 
 ## Data Cleansing
@@ -328,7 +330,7 @@ process.exit(0);
 
 The MIT License
 
-Copyright (c) 2015 - 2017 Joseph Huckaby
+Copyright (c) 2015 - 2018 Joseph Huckaby
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
