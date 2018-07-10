@@ -63,8 +63,12 @@ module.exports = Class.create({
 		}
 	},
 	
-	print: function(args) {
+	print: function(in_args) {
 		// setup date/time stuff
+		
+		// copy args object, never modify user object
+		var args = Tools.copyHash(in_args);
+		
 		var now = args.now ? args.now : new Date();
 		delete args.now;
 		var dargs = Tools.getDateArgs(now);
