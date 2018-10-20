@@ -16,7 +16,7 @@ var Tools = require("pixl-tools");
 
 module.exports = Class.create({
 	
-	columnColors: ['gray', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan'],
+	columnColors: ['gray', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'],
 	dividerColor: 'dim',
 	
 	pather: null,
