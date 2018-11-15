@@ -129,24 +129,30 @@ module.exports = Class.create({
 				}
 			}
 			else if (args.color) {
-				var ccols = [];
-				var nclrs = this.columnColors.length;
-				var dclr = chalk[ this.dividerColor ];
-				
-				for (var idx = 0, len = cols.length; idx < len; idx++) {
-					ccols.push( chalk[ this.columnColors[idx % nclrs] ]( cols[idx] ) );
-				}
-				process.stdout.write(
-					dclr('[') + ccols.join( dclr('][') ) + dclr(']') + "\n" 
-				);
-			} // color
+				// print in color (ignores custom serializer)
+				process.stdout.write( this.colorize(cols) + "\n" );
+			}
 			else {
-				process.stdout.write(line);
+				// print plain
+				process.stdout.write( line );
 			}
 		}
 		
 		// emit row as an event
 		this.emit( 'row', line, cols, args );
+	},
+	
+	colorize: function(cols) {
+		// colorize one row (bracket format)
+		var ccols = [];
+		var nclrs = this.columnColors.length;
+		var dclr = chalk[ this.dividerColor ];
+		
+		for (var idx = 0, len = cols.length; idx < len; idx++) {
+			ccols.push( chalk[ this.columnColors[idx % nclrs] ]( cols[idx] ) );
+		}
+		
+		return dclr('[') + ccols.join( dclr('][') ) + dclr(']');
 	},
 	
 	debug: function(level, msg, data) {
