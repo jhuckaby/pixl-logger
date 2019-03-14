@@ -345,6 +345,11 @@ module.exports = Class.create({
 				callback( err || new Error("No files found matching: " + src_spec) );
 			}
 		} ); // glob
-	} // archive()
+	}, // archive()
+	
+	shouldLog: function(level) {
+		// // check if we're logging at or above the requested level
+		return( this.get('debugLevel') >= level );
+	}
 
 });

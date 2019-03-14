@@ -94,6 +94,21 @@ logger.debug( 3, "This won't be logged at all!" );
 
 In this case we set the `debugLevel` arg to 2, so only the first two calls will be logged.  The third call, which is logged at a higher (more verbose) level than the `debugLevel` value, will be silently skipped.
 
+#### shouldLog
+
+If you need to see if a particular debug level would be logged, you can call the `shouldLog()` method and pass in a level to query.  If the current `debugLevel` is *equal to or higher than* the level number passed in, it returns `true`, otherwise it returns `false`.  Example:
+
+```js
+if (logger.shouldLog(9)) {
+	// do something here like serializing complex data into a string
+	logger.debug(9, "Complex data here: " + complex_data);
+}
+```
+
+The idea is that entire code block wouldn't even be executed if the `debugLevel` was less than 9, saving you the CPU time of serializing the complex data to be logged.
+
+Keep in mind that you can simply pass an Object to `debug()` as an optional 3rd argument, and it'll automatically be serialized to JSON and logged if the debug level is acceptable.
+
 ### error
 
 The `error()` method is designed to assist with logging errors.  It automatically sets the `category` column to `error`.  It requires two arguments, which are values for the `code` and `msg` columns, with the 3rd argument being an optional `data` object, if you want.  Example:
