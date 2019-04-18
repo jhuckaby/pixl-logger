@@ -281,10 +281,11 @@ module.exports = Class.create({
 		
 		glob(src_spec, {}, function (err, files) {
 			// got files
+			if (err) return callback(err);
+			
 			if (files && files.length) {
 				async.eachSeries( files, function(src_file, callback) {
 					// foreach file
-					if (err) return callback(err);
 					
 					// add filename to args
 					self.args.filename = Path.basename(src_file).replace(/\.\w+$/, '');
