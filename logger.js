@@ -1,20 +1,23 @@
 // Generic Logger Class for Node.JS
-// Copyright (c) 2012 - 2018 Joseph Huckaby and PixlCore.com
+// Copyright (c) 2012 - 2020 Joseph Huckaby and PixlCore.com
 // Released under the MIT License
 
-var fs = require('fs');
-var zlib = require('zlib');
-var Path = require('path');
-var os = require('os');
-var async = require('async');
-var mkdirp = require('mkdirp');
-var glob = require('glob');
-var chalk = require('chalk');
+const fs = require('fs');
+const zlib = require('zlib');
+const Path = require('path');
+const os = require('os');
+const chalk = require('chalk');
 
-var Class = require("pixl-class");
-var Tools = require("pixl-tools");
+const Class = require("class-plus");
+const Tools = require("pixl-tools");
 
-module.exports = Class.create({
+const async = Tools.async;
+const mkdirp = Tools.mkdirp;
+const glob = Tools.glob;
+
+module.exports = Class({
+	
+	__events: true,
 	
 	columnColors: ['gray', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'],
 	dividerColor: 'dim',
@@ -22,9 +25,12 @@ module.exports = Class.create({
 	pather: null,
 	filter: null,
 	serializer: null,
-	echoer: null,
+	echoer: null
 	
-	__construct: function(path, columns, args) {
+},
+class Logger {
+	
+	constructor(path, columns, args) {
 		// create new logger instance
 		var self = this;
 		
@@ -45,14 +51,14 @@ module.exports = Class.create({
 				delete self.args[key];
 			}
 		});
-	},
+	}
 	
-	get: function(key) {
+	get(key) {
 		// get one arg, or all of them
 		return key ? this.args[key] : this.args;
-	},
+	}
 	
-	set: function() {
+	set() {
 		// set one or more args, pass in key,value or args obj
 		if (arguments.length == 2) {
 			if (arguments[0].toString().match(/^(pather|filter|serializer|echoer)$/)) this[arguments[0]] = arguments[1];
@@ -61,9 +67,9 @@ module.exports = Class.create({
 		else if (arguments.length == 1) {
 			for (var key in arguments[0]) this.set(key, arguments[0][key]);
 		}
-	},
+	}
 	
-	print: function(in_args) {
+	print(in_args) {
 		// setup date/time stuff
 		
 		// copy args object, never modify user object
@@ -140,9 +146,9 @@ module.exports = Class.create({
 		
 		// emit row as an event
 		this.emit( 'row', line, cols, args );
-	},
+	}
 	
-	colorize: function(cols) {
+	colorize(cols) {
 		// colorize one row (bracket format)
 		var ccols = [];
 		var nclrs = this.columnColors.length;
@@ -153,9 +159,9 @@ module.exports = Class.create({
 		}
 		
 		return dclr('[') + ccols.join( dclr('][') ) + dclr(']');
-	},
+	}
 	
-	debug: function(level, msg, data) {
+	debug(level, msg, data) {
 		// simple debug log implementation, expects 'code' and 'msg' named columns in log
 		// only logs if level is less than or equal to current debugLevel arg
 		if (level <= this.args.debugLevel) {
@@ -166,9 +172,9 @@ module.exports = Class.create({
 				data: data 
 			});
 		}
-	},
+	}
 	
-	error: function(code, msg, data) {
+	error(code, msg, data) {
 		// simple error log implementation, expects 'code' and 'msg' named columns in log
 		this.print({ 
 			category: 'error', 
@@ -176,9 +182,9 @@ module.exports = Class.create({
 			msg: msg, 
 			data: data 
 		});
-	},
+	}
 	
-	transaction: function(code, msg, data) {
+	transaction(code, msg, data) {
 		// simple debug log implementation, expects 'code' and 'msg' named columns in log
 		this.print({ 
 			category: 'transaction', 
@@ -186,9 +192,9 @@ module.exports = Class.create({
 			msg: msg, 
 			data: data 
 		});
-	},
+	}
 	
-	rotate: function() {
+	rotate() {
 		// rotate any log file atomically (defaults to our own file)
 		// 2 arg convention: dest_path, callback
 		// 3 arg convention: log_file, dest_path, callback
@@ -264,9 +270,9 @@ module.exports = Class.create({
 				if (callback) callback(err);
 			}
 		} ); // fs.rename
-	},
+	}
 	
-	archive: function(src_spec, dest_path, epoch, callback) {
+	archive(src_spec, dest_path, epoch, callback) {
 		// archive one or more log files, can use glob spec (defaults to our file).
 		// dest path may use placeholders: [yyyy], [mm], [dd], [hh], [filename], [hostname], etc.
 		// creates dest dirs as needed.
@@ -346,9 +352,9 @@ module.exports = Class.create({
 				callback( err || new Error("No files found matching: " + src_spec) );
 			}
 		} ); // glob
-	}, // archive()
+	}
 	
-	shouldLog: function(level) {
+	shouldLog(level) {
 		// // check if we're logging at or above the requested level
 		return( this.get('debugLevel') >= level );
 	}
