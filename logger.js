@@ -107,7 +107,7 @@ class Logger {
 		}
 		
 		// compose log row
-		var line = this.serializer ? this.serializer(cols, args) : ('[' + cols.join('][') + "]\n");
+		var line = this.serializer ? this.serializer(cols, args) : ('[' + cols.join('][') + "]" + os.EOL);
 		this.lastRow = line;
 		
 		// file path may have placeholders, expand these if necessary
@@ -136,7 +136,7 @@ class Logger {
 			}
 			else if (args.color) {
 				// print in color (ignores custom serializer)
-				process.stdout.write( this.colorize(cols) + "\n" );
+				process.stdout.write( this.colorize(cols) + os.EOL );
 			}
 			else {
 				// print plain
