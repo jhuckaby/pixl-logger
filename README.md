@@ -1,3 +1,40 @@
+<details><summary>Table of Contents</summary>
+
+<!-- toc -->
+- [Overview](#overview)
+- [Usage](#usage)
+	* [Constructor Args](#constructor-args)
+	* [Data Cleansing](#data-cleansing)
+	* [Shortcut Methods](#shortcut-methods)
+		+ [debug](#debug)
+			- [shouldLog](#shouldlog)
+		+ [error](#error)
+		+ [transaction](#transaction)
+	* [Echo to Console](#echo-to-console)
+		+ [Colored Logs](#colored-logs)
+	* [Last Line Logged](#last-line-logged)
+	* [Special Column Names](#special-column-names)
+		+ [epoch](#epoch)
+		+ [hires_epoch](#hires_epoch)
+		+ [date](#date)
+		+ [hostname](#hostname)
+		+ [pid](#pid)
+		+ [data](#data)
+		+ [category](#category)
+	* [Special Hooks](#special-hooks)
+		+ [pather](#pather)
+		+ [filter](#filter)
+		+ [serializer](#serializer)
+		+ [echoer](#echoer)
+	* [Rotating Logs](#rotating-logs)
+	* [Archiving Logs](#archiving-logs)
+	* [Sync or Async](#sync-or-async)
+	* [Buffering](#buffering)
+	* [Approximate Time](#approximate-time)
+- [License](#license)
+
+</details>
+
 # Overview
 
 This module provides a simple logging class, which appends to a text log file with bracket-delimited columns.  You can define any number of columns you want, or use some of the built-in auto-populated columns.  You can populate columns by name, or by using one of the shortcut methods described below.
