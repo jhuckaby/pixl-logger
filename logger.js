@@ -1,5 +1,5 @@
 // Generic Logger Class for Node.JS
-// Copyright (c) 2012 - 2020 Joseph Huckaby and PixlCore.com
+// Copyright (c) 2012 - 2021 Joseph Huckaby and PixlCore.com
 // Released under the MIT License
 
 const fs = require('fs');
@@ -7,6 +7,8 @@ const zlib = require('zlib');
 const Path = require('path');
 const os = require('os');
 const chalk = require('chalk');
+const whenever = require('approximate-now');
+const Uncatch = require('uncatch');
 
 const Class = require("class-plus");
 const Tools = require("pixl-tools");
@@ -22,10 +24,18 @@ module.exports = Class({
 	columnColors: ['gray', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'],
 	dividerColor: 'dim',
 	
+	internalArgs: ['pather', 'filter', 'serializer', 'echoer', 'useBuffer', 'bufferMaxLines', 'flushInterval', 'flushOnShutdown', 'approximateTime'],
+	
 	pather: null,
 	filter: null,
 	serializer: null,
-	echoer: null
+	echoer: null,
+	
+	useBuffer: false,
+	bufferMaxLines: 100,
+	flushInterval: 100,
+	flushOnShutdown: true,
+	approximateTime: false
 	
 },
 class Logger {
@@ -45,12 +55,78 @@ class Logger {
 		if (!this.args.pid) this.args.pid = process.pid;
 		
 		// pass hooks in args
-		['pather', 'filter', 'serializer', 'echoer'].forEach( function(key) {
+		this.internalArgs.forEach( function(key) {
 			if (self.args[key]) {
 				self[key] = self.args[key];
 				delete self.args[key];
 			}
 		});
+		
+		// setup buffer system
+		if (this.useBuffer) this.enableBuffer();
+	}
+	
+	enableBuffer() {
+		// setup flush interval
+		this.useBuffer = true;
+		this.bufferLines = [];
+		this.flushTimer = setInterval( this.flushBuffer.bind(this), this.flushInterval );
+		
+		if (this.flushOnShutdown) {
+			process.on('SIGTERM', this.shutdown.bind(this));
+			process.on('SIGINT', this.shutdown.bind(this));
+			process.on('SIGQUIT', this.shutdown.bind(this));
+			Uncatch.on('uncaughtException', this.shutdown.bind(this));
+		}
+	}
+	
+	bufferAppendLine(line) {
+		// append line to buffer, flush if full
+		this.bufferLines.push(line);
+		if (this.bufferLines.length >= this.bufferMaxLines) this.flushBuffer();
+	}
+	
+	flushBuffer() {
+		// flush all buffered lines to disk
+		// only allow one libuv I/O thread at a time
+		// if FS is busy, buffer continues to grow, and will flush on next print or flush interval
+		var self = this;
+		if (!this.useBuffer || !this.bufferLines.length || this.flushInProgress) return;
+		this.flushInProgress = true;
+		
+		var payload = this.bufferLines.join("");
+		this.bufferLines = [];
+		
+		if (this.args.sync) {
+			fs.appendFileSync( this.lastPath, payload );
+			this.flushInProgress = false;
+			this.emit('bufferFlushed', payload);
+		}
+		else {
+			fs.appendFile( this.lastPath, payload, function() {
+				self.flushInProgress = false;
+				self.emit('bufferFlushed', payload);
+			});
+		}
+	}
+	
+	shutdown() {
+		// shut down buffer and disable async too (called on shutdown / crash)
+		if (!this.useBuffer) return;
+		
+		if (this.flushTimer) {
+			clearTimeout( this.flushTimer );
+			delete this.flushTimer;
+		}
+		
+		// force shutdown flush in sync mode
+		if (this.bufferLines.length) {
+			fs.appendFileSync( this.lastPath, this.bufferLines.join("") );
+			this.bufferLines = [];
+		}
+		
+		this.useBuffer = false;
+		this.args.sync = true;
 	}
 	
 	get(key) {
@@ -61,12 +137,28 @@ class Logger {
 	set() {
 		// set one or more args, pass in key,value or args obj
 		if (arguments.length == 2) {
-			if (arguments[0].toString().match(/^(pather|filter|serializer|echoer)$/)) this[arguments[0]] = arguments[1];
+			if (arguments[0].toString().match(/^(pather|filter|serializer|echoer|useBuffer|bufferMaxLines|flushInterval|flushOnShutdown)$/)) {
+				this[arguments[0]] = arguments[1];
+			}
 			else this.args[ arguments[0] ] = arguments[1];
 		}
 		else if (arguments.length == 1) {
 			for (var key in arguments[0]) this.set(key, arguments[0][key]);
 		}
+	}
+	
+	clone(args) {
+		// make copy of ourself with optional overrides
+		var self = this;
+		var clone = new module.exports( this.path, this.columns, this.args );
+		
+		this.internalArgs.forEach( function(key) {
+			if (self[key]) clone[key] = self[key];
+		});
+		
+		if (args) clone.set(args);
+		
+		return clone;
 	}
 	
 	print(in_args) {
@@ -75,9 +167,34 @@ class Logger {
 		// copy args object, never modify user object
 		var args = Tools.copyHash(in_args);
 		
-		var now = args.now ? args.now : new Date();
-		delete args.now;
-		var dargs = Tools.getDateArgs(now);
+		var now = 0;
+		if (args.now) {
+			// now was passed in (expects hires-epoch)
+			now = args.now * 1000;
+			delete args.now;
+		}
+		else if (this.approximateTime) {
+			// use approximate-time (~50ms precision)
+			now = whenever.approximateTime.now;
+		}
+		else {
+			// call system time
+			now = Date.now();
+		}
+		
+		var hires_epoch = now / 1000;
+		var epoch = Math.floor( epoch );
+		
+		// only compute local date/time string for unique seconds, for performance
+		var date_str = '';
+		if (this.lastEpoch && (epoch == this.lastEpoch)) {
+			date_str = this.lastDateStr;
+		}
+		else {
+			date_str = Tools.formatDate( epoch, '[yyyy]-[mm]-[dd] [hh]:[mi]:[ss]' );
+			this.lastDateStr = date_str;
+			this.lastEpoch = epoch;
+		}
 		
 		// import args into object
 		for (var key in this.args) {
@@ -85,9 +202,9 @@ class Logger {
 		}
 		
 		// set automatic column values
-		args.hires_epoch = now.getTime() / 1000;
-		args.epoch = Math.floor( args.hires_epoch );
-		args.date = dargs.yyyy_mm_dd.replace(/\//g, '-') + ' ' + dargs.hh_mi_ss;
+		args.hires_epoch = hires_epoch;
+		args.epoch = epoch;
+		args.date = date_str;
 		
 		// populate columns
 		var cols = [];
@@ -118,9 +235,11 @@ class Logger {
 		else if (path.indexOf('[') > -1) {
 			path = Tools.substitute( path, args );
 		}
+		this.lastPath = path;
 		
 		// append to log
-		if (args.sync) fs.appendFileSync(path, line);
+		if (this.useBuffer) this.bufferAppendLine(line);
+		else if (args.sync) fs.appendFileSync(path, line);
 		else fs.appendFile(path, line, function() {});
 		
 		// echo to console if desired

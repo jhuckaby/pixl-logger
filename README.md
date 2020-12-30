@@ -55,6 +55,20 @@ Note that when you pass arguments to `print()` they are not saved for subsequent
 
 You can also fetch arg values using `get()`.  Pass in a key to fetch one arg, or omit to get the entire `args` object back.
 
+## Constructor Args
+
+You can specify one or more args in the constructor, by passing in an object after the log columns.  Example:
+
+```js
+var logger = new Logger( log_file, log_columns, {
+	hostname: 'myhost.com',
+	custom_column: 1234,
+	sync: false
+} );
+```
+
+These properties can include your own custom column keys, and also built-in args like `sync`, `echo` and `color`.
+
 ## Data Cleansing
 
 In order to protect the log format and syntax, all column values are "cleansed" before being written.  Specifically, any newlines are converted to single spaces, and the character sequence `][` is stripped (as it would corrupt the log column layout).  All other characters are allowed.  Example:
@@ -341,11 +355,60 @@ logger.debug( 1, "This will be logged synchronously, even if we exit right NOW!"
 process.exit(0);
 ```
 
+## Buffering
+
+For high traffic applications, calling out to the filesystem to print each log row can become a bottleneck, even in async mode.  To solve this problem, you can enable buffering.  This accumulates N lines (default 100) in RAM before flushing them to disk all at once, using a single filesystem call.  The logger will also automatically flush the buffer at preset intervals (default 100ms), to handle sudden low traffic situations.  The flush operation itself is async (using [fs.appendFile](https://nodejs.org/api/fs.html#fs_fs_appendfile_path_data_options_callback)) so it will not block the main thread, but it also ensures only one flush operation happens at a time.
+
+To enable buffering, set the `useBuffer` property in the constructor like this:
+
+```js
+var logger = new Logger( log_file, log_columns, {
+	useBuffer: true
+} );
+```
+
+Or you can enable it anytime after construction by calling the `enableBuffer()` method.  Example:
+
+```js
+var logger = new Logger( log_file, log_columns );
+logger.enableBuffer();
+```
+
+You can set the following properties to configure the buffering system (either as constructor args or by calling `set()`):
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `bufferMaxLines` | Integer | The number of lines to buffer before flushing.  Defaults to `100` (lines). |
+| `flushInterval` | Integer | The auto-flush interval in milliseconds.  Defaults to `100` (ms). |
+| `flushOnShutdown` | Boolean | Automatically flush on shutdown (see below).  Defaults to `true` (enabled). |
+
+The flush interval requires a timer, and this may keep the Node.js process alive.  We do not use [unref()](https://nodejs.org/en/docs/guides/timers-in-node/#leaving-timeouts-behind) on the timer because too many of these can cause performance issues.  So, our timer must be cleared on shutdown.  The logger can do this automatically if you leave `flushOnShutdown` enabled.  This hooks `SIGTERM`, `SIGINT`, `SIGQUIT` and `uncaughtException`, flushes the buffer and disables further buffering.  It also enables `sync` mode so any last minute log prints will be sync-written.
+
+If you don't want to use `flushOnShutdown` and instead handle things yourself, set it to `false`, then simply call `shutdown()` on the logger instance when you are done using it.  This will flush the buffer and disable further buffering (you can still log of course -- it'll just be immediate).
+
+The final shutdown flush is performed using [fs.appendFileSync](https://nodejs.org/api/fs.html#fs_fs_appendfilesync_path_data_options) so it is guaranteed to be written, even in a crash situation (we use the cooperative [uncatch](https://github.com/jhuckaby/uncatch) module to hook unhandled exceptions).
+
+Note that buffering only affects writing to the log file itself, and not the [echo](#echo-to-console) system.  If you echo log rows to the console, those lines are printed immediately.
+
+## Approximate Time
+
+High traffic applications may also suffer due to the logger fetching the system clock time (i.e. via [Date.now()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now)) for every log row.  To assist with this, you can enable "approximate" time which only fetches the system clock time once every 50 milliseconds.  For log rows printed in between system clock calls, the time is approximated.
+
+To enable this feature, set the `approximateTime` property to `true` (either as constructor args or by calling `set()`):
+
+```js
+var logger = new Logger( log_file, log_columns, {
+	approximateTime: true
+} );
+```
+
+The approximate time feature uses the [approximate-now](https://github.com/gajus/approximate-now) module.  Note that this **does** utilize an `unref()` interval timer, so use with care.
+
 # License
 
 The MIT License
 
-Copyright (c) 2015 - 2018 Joseph Huckaby
+Copyright (c) 2015 - 2021 Joseph Huckaby
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
