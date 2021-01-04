@@ -115,7 +115,7 @@ class Logger {
 		if (!this.useBuffer) return;
 		
 		if (this.flushTimer) {
-			clearTimeout( this.flushTimer );
+			clearInterval( this.flushTimer );
 			delete this.flushTimer;
 		}
 		
