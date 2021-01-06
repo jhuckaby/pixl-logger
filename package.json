@@ -1,6 +1,6 @@
 {
   "name": "pixl-logger",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A simple logging class which generates [bracket][delimited] log columns.",
   "author": "Joseph Huckaby <jhuckaby@gmail.com>",
   "homepage": "https://github.com/jhuckaby/pixl-logger",

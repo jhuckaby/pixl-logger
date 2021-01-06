@@ -183,7 +183,7 @@ class Logger {
 		}
 		
 		var hires_epoch = now / 1000;
-		var epoch = Math.floor( epoch );
+		var epoch = Math.floor( hires_epoch );
 		
 		// only compute local date/time string for unique seconds, for performance
 		var date_str = '';
