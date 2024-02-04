@@ -43,21 +43,21 @@ This module provides a simple logging class, which appends to a text log file wi
 
 Use [npm](https://www.npmjs.com/) to install the module:
 
-```
+```sh
 npm install pixl-logger
 ```
 
 Then use `require()` to load it in your code:
 
-```javascript
-var Logger = require('pixl-logger');
+```js
+const Logger = require('pixl-logger');
 ```
 
 To use the module, instantiate an object, and start logging:
 
-```javascript
-var columns = ['hires_epoch', 'date', 'hostname', 'component', 'category', 'code', 'msg', 'data'];
-var logger = new Logger( 'logs/debug.log', columns );
+```js
+let columns = ['hires_epoch', 'date', 'hostname', 'component', 'category', 'code', 'msg', 'data'];
+let logger = new Logger( 'logs/debug.log', columns );
 logger.set('hostname', 'myserver.com');
 
 logger.print({
@@ -74,11 +74,11 @@ This would append the following like to `logs/debug.log`:
 [1423462332.437][2015-02-08 22:12:12][myserver.com][main][debug][1][Hello log!][]
 ```
 
-Some column names are special, and automatically populated (see below), but the rest are free-form.  You can include any number of columns you like, and name them however you want.
+Some column names are special or automatically populated (see [Special Column Names](#special-column-names)), but the rest are free-form.  You can include any number of columns you like, and name them however you want.
 
 All the log "columns" are basically just key/value pairs stored in an `args` property in the class, which don't have to be specified on every call to `print()`.  Meaning, you can set some of them once, and only have to set them again when they change.  Example:
 
-```javascript
+```js
 logger.set('component', 'main');
 logger.set('category', 'debug');
 
@@ -97,7 +97,7 @@ You can also fetch arg values using `get()`.  Pass in a key to fetch one arg, or
 You can specify one or more args in the constructor, by passing in an object after the log columns.  Example:
 
 ```js
-var logger = new Logger( log_file, log_columns, {
+let logger = new Logger( log_file, log_columns, {
 	hostname: 'myhost.com',
 	custom_column: 1234,
 	sync: false
@@ -110,7 +110,7 @@ These properties can include your own custom column keys, and also built-in args
 
 In order to protect the log format and syntax, all column values are "cleansed" before being written.  Specifically, any newlines are converted to single spaces, and the character sequence `][` is stripped (as it would corrupt the log column layout).  All other characters are allowed.  Example:
 
-```javascript
+```js
 logger.debug( 1, "This won't go well\n[Hi][There]\r\nGoodbye.\n" );
 ```
 
@@ -128,14 +128,14 @@ The logger library provides the following three shortcut methods, which accept a
 
 The `debug()` method is designed to assist with writing to a debug log.  It automatically sets the `category` column to `debug`.  It requires two arguments, which are values for the `code` (debug level) and `msg` columns, with the 3rd argument being an optional `data` object, if you want.  Examples:
 
-```javascript
+```js
 logger.debug( 1, "Logged at debug level 1" );
 logger.debug( 2, "Logged at debug level 2", {some:"data"} );
 ```
 
 An extra feature with the `debug()` call is that you can set a `debugLevel` arg on your class instance, and it'll only log entries if they have an *equal or lower level* (a.k.a. code).  So imagine this setup:
 
-```javascript
+```js
 logger.set( 'debugLevel', 2 );
 
 logger.debug( 1, "Logged at debug level 1" );
@@ -164,13 +164,13 @@ Keep in mind that you can simply pass an Object to `debug()` as an optional 3rd 
 
 The `error()` method is designed to assist with logging errors.  It automatically sets the `category` column to `error`.  It requires two arguments, which are values for the `code` and `msg` columns, with the 3rd argument being an optional `data` object, if you want.  Example:
 
-```javascript
+```js
 logger.error( 1005, "An error of type 1005 occurred!" );
 ```
 
 This would be equivalent to calling `print()` with the following:
 
-```javascript
+```js
 logger.print({
 	category: 'error',
 	code: 1005,
@@ -182,13 +182,13 @@ logger.print({
 
 The `transaction()` method is designed to assist with logging transactions.  A "transaction" is whatever action you define in your app as something you want logged, for audit or replay purposes.  It automatically sets the `category` column to `transaction`.  It requires two arguments, which are values for the `code` and `msg` columns, with the 3rd argument being an optional `data` object, if you want.  Example:
 
-```javascript
+```js
 logger.transaction( "user_update", "User jhuckaby was updated", {username:"jhuckaby"} );
 ```
 
 This would be equivalent to calling `print()` with the following:
 
-```javascript
+```js
 logger.print({
 	category: 'transaction',
 	code: "user_update",
@@ -199,9 +199,9 @@ logger.print({
 
 ## Echo to Console
 
-If you set the `echo` arg to any true value, the logger will echo all log entries to [process.stdout](http://nodejs.org/api/process.html#process_process_stdout), in addition to the log file.  This is useful for running CLI scripts or your app in debug mode.  Example:
+If you set the `echo` arg to any true value, the logger will echo all log entries to [process.stdout](https://nodejs.org/api/process.html#processstdout), in addition to the log file.  This is useful for running CLI scripts or your app in debug mode.  Example:
 
-```javascript
+```js
 logger.set( 'echo', true );
 logger.debug( 1, "This will be logged and echoed to the console!" );
 ```
@@ -214,7 +214,7 @@ If you set the `color` arg to any true value, the logger will echo all log entri
 
 Example:
 
-```javascript
+```js
 logger.set( 'echo', true );
 logger.set( 'color', true );
 logger.debug( 1, "This will be colored in the console!" );
@@ -226,8 +226,8 @@ Note that the color only affects the local echo in your terminal.  The log file 
 
 To grab the last line logged by the logger, pull the `lastRow` property off the class instance.  It is the fully formatted line, including an EOL.  Example:
 
-```javascript
-var line = logger.lastRow;
+```js
+let line = logger.lastRow;
 ```
 
 ## Special Column Names
@@ -260,7 +260,7 @@ Any column named `date` will automatically be populated with a human-friendly ve
 
 ### hostname
 
-Any column named `hostname` will automatically be populated with the server's hostname, obtained by calling [os.hostname()](https://nodejs.org/api/os.html#os_os_hostname) once at construction.  Example:
+Any column named `hostname` will automatically be populated with the server's hostname, obtained by calling [os.hostname()](https://nodejs.org/api/os.html#oshostname) once at construction.  Example:
 
 ```
 [host01.mydomain.com]
@@ -268,7 +268,7 @@ Any column named `hostname` will automatically be populated with the server's ho
 
 ### pid
 
-Any column named `pid` will automatically be populated with the current Process ID (PID), obtained by calling [process.pid](http://nodejs.org/api/process.html#process_process_pid) once at construction.  Example:
+Any column named `pid` will automatically be populated with the current Process ID (PID), obtained by calling [process.pid](https://nodejs.org/api/process.html#processpid) once at construction.  Example:
 
 ```
 [13702]
@@ -296,11 +296,11 @@ The `pather` hook allows you to intercept and alter the log path on disk per eac
 
 ```js
 logger.pather = function(path, args) {
-	return '/var/log/MyApp-' + args.category + '.log';
+	return '/let/log/MyApp-' + args.category + '.log';
 };
 ```
 
-In this example the `category` column is used to dynamically construct the log filename.  So if the `category` column was set to `debug`, the log path would be `/var/log/MyApp-debug.log`.  This is a great way to generate multiple logs based on any criteria you want.
+In this example the `category` column is used to dynamically construct the log filename.  So if the `category` column was set to `debug`, the log path would be `/let/log/MyApp-debug.log`.  This is a great way to generate multiple logs based on any criteria you want.
 
 ### filter
 
@@ -338,7 +338,7 @@ logger.echoer = function(line, cols, args) {
 };
 ```
 
-In this example we are only echoing certain columns to the console (just `category` and `msg`) using the `args` object, and allowing Node.js to serialize the data column via [console.dir()](https://nodejs.org/api/console.html#console_console_dir_obj_options).  This way if you are using a debugger, it may be navigable.
+In this example we are only echoing certain columns to the console (just `category` and `msg`) using the `args` object, and allowing Node.js to serialize the data column via [console.dir()](https://nodejs.org/api/console.html#consoledirobj-options).  This way if you are using a debugger, it may be navigable.
 
 If you specify a filesystem path as the `echoer` instead of a function, it will be appended to.  Using this technique you can have the logger append to two different log files at once (the primary log and the echoer log).  This file append honors the `sync` flag as well.
 
@@ -348,7 +348,7 @@ Note that your `echoer` hook is only ever called if [Echo to Console](#echo-to-c
 
 To rotate a log file, call the `rotate()` method, passing in a destination filesystem path and a callback.  This will atomically move the file to the destination directory/filename, attempting a rename, and falling back to a "copy to temp file + rename" strategy.  Example:
 
-```javascript
+```js
 logger.rotate( '/logs/pickup/myapp.log', function(err) {
 	if (err) throw err;
 } );
@@ -358,7 +358,7 @@ If you omit a filename on the destination path and leave a trailing slash, the s
 
 You can actually rotate any log file you want by specifying three arguments, with the custom source log file path as the first argument.  Example:
 
-```javascript
+```js
 logger.rotate( '/path/to/logfile.log', '/logs/pickup/otherapp.log', function(err) {
 	if (err) throw err;
 } );
@@ -368,10 +368,10 @@ logger.rotate( '/path/to/logfile.log', '/logs/pickup/otherapp.log', function(err
 
 You can also "archive" logs using the `archive()` method.  Archiving differs from rotation in that the log file is atomically copied to a custom location which may contain date/time directories (all auto-created as needed), and then the file is compressed using gzip.  You can archive any number of logs at once by using [filesystem glob syntax](https://en.wikipedia.org/wiki/Glob_%28programming%29).  Example:
 
-```javascript
-var src_spec = '/logs/myapp/*.log';
-var dest_path = '/archives/myapp/[yyyy]/[mm]/[dd]/[filename]-[hh].log.gz';
-var epoch = ((new Date()).getTime() / 1000) - 1800; // 30 minutes ago
+```js
+let src_spec = '/logs/myapp/*.log';
+let dest_path = '/archives/myapp/[yyyy]/[mm]/[dd]/[filename]-[hh].log.gz';
+let epoch = ((new Date()).getTime() / 1000) - 1800; // 30 minutes ago
 
 logger.archive( src_spec, dest_path, epoch, function(err) {
 	if (err) throw err;
@@ -386,7 +386,7 @@ By default, the logger will append to your log files asynchronously.  This has t
 
 To get around these potential issues, you can write log entries synchronously.  Just set the `sync` arg to true:
 
-```javascript
+```js
 logger.set( 'sync', true );
 logger.debug( 1, "This will be logged synchronously, even if we exit right NOW!" );
 process.exit(0);
@@ -394,12 +394,12 @@ process.exit(0);
 
 ## Buffering
 
-For high traffic applications, calling out to the filesystem to print each log row can become a bottleneck, even in async mode.  To solve this problem, you can enable buffering.  This accumulates N lines (default 100) in RAM before flushing them to disk all at once, using a single filesystem call.  The logger will also automatically flush the buffer at preset intervals (default 100ms), to handle sudden low traffic situations.  The flush operation itself is async (using [fs.appendFile](https://nodejs.org/api/fs.html#fs_fs_appendfile_path_data_options_callback)) so it will not block the main thread, but it also ensures only one flush operation happens at a time.
+For high traffic applications, calling out to the filesystem to print each log row can become a bottleneck, even in async mode.  To solve this problem, you can enable buffering.  This accumulates N lines (default 100) in RAM before flushing them to disk all at once, using a single filesystem call.  The logger will also automatically flush the buffer at preset intervals (default 100ms), to handle sudden low traffic situations.  The flush operation itself is async (using [fs.appendFile](https://nodejs.org/api/fs.html#filehandleappendfiledata-options)) so it will not block the main thread, but it also ensures only one flush operation happens at a time.
 
 To enable buffering, set the `useBuffer` property in the constructor like this:
 
 ```js
-var logger = new Logger( log_file, log_columns, {
+let logger = new Logger( log_file, log_columns, {
 	useBuffer: true
 } );
 ```
@@ -407,7 +407,7 @@ var logger = new Logger( log_file, log_columns, {
 Or you can enable it anytime after construction by calling the `enableBuffer()` method.  Example:
 
 ```js
-var logger = new Logger( log_file, log_columns );
+let logger = new Logger( log_file, log_columns );
 logger.enableBuffer();
 ```
 
@@ -423,7 +423,7 @@ The flush interval requires a timer, and this may keep the Node.js process alive
 
 If you don't want to use `flushOnShutdown` and instead handle things yourself, set it to `false`, then simply call `shutdown()` on the logger instance when you are done using it.  This will flush the buffer and disable further buffering (you can still log of course -- it'll just be immediate).
 
-The final shutdown flush is performed using [fs.appendFileSync](https://nodejs.org/api/fs.html#fs_fs_appendfilesync_path_data_options) so it is guaranteed to be written, even in a crash situation (we use the cooperative [uncatch](https://github.com/jhuckaby/uncatch) module to hook unhandled exceptions).
+The final shutdown flush is performed using [fs.appendFileSync](https://nodejs.org/api/fs.html#fsappendfilesyncpath-data-options) so it is guaranteed to be written, even in a crash situation (we use the cooperative [uncatch](https://github.com/jhuckaby/uncatch) module to hook unhandled exceptions).
 
 Note that buffering only affects writing to the log file itself, and not the [echo](#echo-to-console) system.  If you echo log rows to the console, those lines are printed immediately.
 
@@ -434,7 +434,7 @@ High traffic applications may also suffer due to the logger fetching the system 
 To enable this feature, set the `approximateTime` property to `true` (either as constructor args or by calling `set()`):
 
 ```js
-var logger = new Logger( log_file, log_columns, {
+let logger = new Logger( log_file, log_columns, {
 	approximateTime: true
 } );
 ```
