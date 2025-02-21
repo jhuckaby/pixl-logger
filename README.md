@@ -325,7 +325,7 @@ logger.serializer = function(cols, args) {
 };
 ```
 
-Your serializer function is expected to return a full formatted log row (line) ending in a EOL character.
+Your serializer function is expected to return a full formatted log row (line) ending in a EOL character.  However, it can also return boolean `false`, in which case the line will not be logged at all.
 
 ### echoer
 

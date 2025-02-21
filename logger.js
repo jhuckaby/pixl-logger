@@ -225,6 +225,7 @@ class Logger {
 		
 		// compose log row
 		var line = this.serializer ? this.serializer(cols, args) : ('[' + cols.join('][') + "]" + os.EOL);
+		if (line === false) return; // do not log anything
 		this.lastRow = line;
 		
 		// file path may have placeholders, expand these if necessary
